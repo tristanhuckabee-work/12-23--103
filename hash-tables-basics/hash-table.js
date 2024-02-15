@@ -10,36 +10,71 @@ class KeyValuePair {
 
 class HashTable {
   constructor(numBuckets = 4) {
-    this.data = new Array(numBuckets).fill(null);
-    this.capacity = numBuckets;
     this.count = 0;
+    this.capacity = numBuckets;
+    this.data = new Array(numBuckets).fill(null);
   }
   hash(key) {
-    let sha = sha256(key);
-    return parseInt('0x'+ sha.slice(0,8));
+    const hash = sha256(key);
+    const shortHash = hash.slice(0,8);
+    const hashInteger = parseInt(shortHash, 16);
+    return hashInteger;
+
+    // return parseInt('0x' + sha256(key).slice(0, 8));
+    // return parseInt(sha256(key).slice(0, 8), 16);
+
   }
   hashMod(key) {
     return this.hash(key) % this.capacity;
   }
 
   insertNoCollisions(key, value) {
+    let mod = this.hashMod(key);
+
+    if (this.data[mod]) {
+      throw new Error(`hash collision or same key/value pair already exists!`)
+    }
+
+    this.data[mod] = new KeyValuePair(key, value);
+    this.count++;
+  }
+
+  insertWithHashCollisions(key, value) {
+    try {
+      this.insertNoCollisions(key, value);
+    } catch (e) {
+      let node = new KeyValuePair(key, value);
+      let mod = this.hashMod(key);
+      
+      node.next = this.data[mod];
+      this.data[mod] = node;
+      this.count++
+    }
+  }
+
+  insert(key, value) {
     let node = new KeyValuePair(key, value);
     let mod = this.hashMod(key);
-    
+
     if (!this.data[mod]) {
       this.data[mod] = node;
       this.count++;
       return;
     }
-    throw new Error('hash collision or same key/value pair already exists!')
-  }
 
-  insertWithHashCollisions(key, value) {
-    // Your code here
-  }
+    let curr = this.data[mod];
+    while (curr) {
+      if (curr.next && curr.next.key == node.key) {
+        node.next = curr.next.next;
+        curr.next = node
+        return;
+      }
+      curr = curr.next;
+    }
 
-  insert(key, value) {
-    // Your code here 
+    node.next = this.data[mod];
+    this.data[mod] = node;
+    this.count++;
   }
 
 }
