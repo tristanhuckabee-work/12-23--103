@@ -9,25 +9,33 @@ class KeyValuePair {
 }
 
 class HashTable {
-
   constructor(numBuckets = 4) {
-    // Your code here 
+    this.data = new Array(numBuckets).fill(null);
+    this.capacity = numBuckets;
+    this.count = 0;
   }
-
   hash(key) {
-    // Your code here 
+    let sha = sha256(key);
+    return parseInt('0x'+ sha.slice(0,8));
   }
-
   hashMod(key) {
-    // Your code here 
+    return this.hash(key) % this.capacity;
   }
 
   insertNoCollisions(key, value) {
-    // Your code here 
+    let node = new KeyValuePair(key, value);
+    let mod = this.hashMod(key);
+    
+    if (!this.data[mod]) {
+      this.data[mod] = node;
+      this.count++;
+      return;
+    }
+    throw new Error('hash collision or same key/value pair already exists!')
   }
 
   insertWithHashCollisions(key, value) {
-    // Your code here 
+    // Your code here
   }
 
   insert(key, value) {
